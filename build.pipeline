@@ -1,10 +1,15 @@
 pipeline {
     agent any
-
+    parameters{
+        string(name: 'Name', Default:'Me', description:'whats your name')
+    }
+    environment{
+        String YourName = "${params.Name}"
+    }
     stages {
         stage('Hello') {
             steps {
-                echo 'Hello World'
+                echo "Hello ${YourName}"
             }
         }
     }
