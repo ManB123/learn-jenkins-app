@@ -19,9 +19,11 @@ pipeline {
 
         stage('Deploy CloudFormation Stack') {
             steps {
-                withCredentials([
-                    aws(credentialsId: 'aws_creds')
-                ]) {
+                // Use the AWS credentials binding class for access/secret env vars
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws_creds'
+                ]]) {
                     sh """
                     aws cloudformation deploy \
                       --stack-name ${STACK_NAME} \
