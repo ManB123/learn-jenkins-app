@@ -26,20 +26,30 @@ pipeline {
                     usernameVariable: 'AWS_ACCESS_KEY_ID',
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 )]) {
-                    sh """
-                    set -e
-                    test -f deploy.yaml
+                                        sh '''
+                                        set -eu
+                                        test -f deploy.yaml
 
-                    # Run AWS CLI via Docker to avoid installing it on the Jenkins agent.
-                    # Pipe the template into the container so we don't rely on workspace volume mounts.
-                    cat deploy.yaml | docker run --rm -i \\
-                      -e AWS_ACCESS_KEY_ID \\
-                      -e AWS_SECRET_ACCESS_KEY \\
-                      -e AWS_REGION \\
-                      -e STACK_NAME \\
-                      -e S3_BUCKET_NAME \\
-                      amazon/aws-cli:2.15.0 sh -c 'cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name \$STACK_NAME --template-file /tmp/deploy.yaml --parameter-overrides S3BucketName=\$S3_BUCKET_NAME --capabilities CAPABILITY_IAM --region \$AWS_REGION'
-                    """
+                                        # amazon/aws-cli image uses ENTRYPOINT=aws, so override it to a shell.
+                                        docker run --rm -i \
+                                            --entrypoint sh \
+                                            -e AWS_ACCESS_KEY_ID \
+                                            -e AWS_SECRET_ACCESS_KEY \
+                                            -e AWS_REGION \
+                                            -e STACK_NAME \
+                                            -e S3_BUCKET_NAME \
+                                            amazon/aws-cli:2.15.0 -c '
+                                                set -eu
+                                                cat > /tmp/deploy.yaml
+                                                aws --version
+                                                aws cloudformation deploy \
+                                                    --stack-name "$STACK_NAME" \
+                                                    --template-file /tmp/deploy.yaml \
+                                                    --parameter-overrides S3BucketName="$S3_BUCKET_NAME" \
+                                                    --capabilities CAPABILITY_IAM \
+                                                    --region "$AWS_REGION"
+                                            ' < deploy.yaml
+                                        '''
                 }
             }
         }
