@@ -20,19 +20,15 @@ pipeline {
         stage('Deploy CloudFormation Stack') {
             steps {
                 withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws_creds',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
+                    aws(credentialsId: 'aws_creds')
                 ]) {
-                    sh '''
-                    aws cloudformation deploy ^
-                      --stack-name %STACK_NAME% ^
-                      --template-file deploy.yaml ^
-                      --capabilities CAPABILITY_IAM ^
-                      --region %AWS_REGION%
-                    '''
+                    sh """
+                    aws cloudformation deploy \
+                      --stack-name ${STACK_NAME} \
+                      --template-file deploy.yaml \
+                      --capabilities CAPABILITY_IAM \
+                      --region ${AWS_REGION}
+                    """
                 }
             }
         }
