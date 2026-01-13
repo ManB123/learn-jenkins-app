@@ -38,7 +38,7 @@ pipeline {
                       -e AWS_REGION \\
                       -e STACK_NAME \\
                       -e S3_BUCKET_NAME \\
-                      amazon/aws-cli:2.15.0 sh -c 'cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name "\$STACK_NAME" --template-file /tmp/deploy.yaml --parameter-overrides S3BucketName="\$S3_BUCKET_NAME" --capabilities CAPABILITY_IAM --region "\$AWS_REGION"'
+                      amazon/aws-cli:2.15.0 sh -c 'cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name \$STACK_NAME --template-file /tmp/deploy.yaml --parameter-overrides S3BucketName=\$S3_BUCKET_NAME --capabilities CAPABILITY_IAM --region \$AWS_REGION'
                     """
                 }
             }
