@@ -1,15 +1,30 @@
+
+
 pipeline {
     agent any
-    parameters{
-        string(name: 'Name', defaultValue:'Me', description:'whats your name')
-    }
-    environment{
-        String YourName = "${params.Name}"
+    environment {
+        AWS_REGION = 'us-east-1'
+        STACK_NAME = 'jenkins-cloudformation-stac'
     }
     stages {
-        stage('Hello') {
+        stage('Checkout') {
             steps {
-                echo "Hello ${YourName}"
+                git(
+                    url: "https://github.com/ManB123/learn-jenkins-app.git",
+                    branch: "main",
+                )
+            }
+        }
+        stage('Deploy CloudFormation Stack') {
+            steps {
+                withCredentials([aws(credentialsId: 'aws_creds')])
+                {
+                    script {
+                        bat '''
+                        aws cloudformation deploy --stack-name %STACK_NAME% --template-file deploy.yaml --capabilities CAPABILITY_IAM --region %AWS_REGION%
+                        '''
+                    }
+                }
             }
         }
     }
