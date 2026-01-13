@@ -4,6 +4,7 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'
         STACK_NAME = 'jenkins-cloudformation-stack'
+        S3_BUCKET_NAME = 'rendani-jenkins-bucket-unique-12345'
     }
 
     stages {
@@ -36,7 +37,8 @@ pipeline {
                       -e AWS_SECRET_ACCESS_KEY \
                       -e AWS_REGION \
                       -e STACK_NAME \
-                      amazon/aws-cli:2.15.0 sh -c 'cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name "$STACK_NAME" --template-file /tmp/deploy.yaml --capabilities CAPABILITY_IAM --region "$AWS_REGION"'
+                      -e S3_BUCKET_NAME \
+                      amazon/aws-cli:2.15.0 sh -c 'cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name "$STACK_NAME" --template-file /tmp/deploy.yaml --parameter-overrides S3BucketName="$S3_BUCKET_NAME" --capabilities CAPABILITY_IAM --region "$AWS_REGION"'
                     '''
                 }
             }
