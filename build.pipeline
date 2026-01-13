@@ -4,19 +4,13 @@ pipeline {
     parameters {
         choice(
             name: 'EC2AMI',
-            choices: [
-                'ami-068c0051b15cdb816',
-                'ami-069e612f612be3a2b'
-            ].join('\n'),
+            choices: 'ami-068c0051b15cdb816\nami-069e612f612be3a2b',
             description: 'AMI ID for the EC2 instance (must exist in the selected region)'
         )
 
         choice(
             name: 'InstanceType',
-            choices: [
-                't3.micro',
-                't3.small'
-            ].join('\n'),
+            choices: 't3.micro\nt3.small',
             description: 'EC2 instance type'
         )
 
