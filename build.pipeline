@@ -1,10 +1,47 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'EC2AMI',
+            choices: [
+                'ami-068c0051b15cdb816',
+                'ami-069e612f612be3a2b'
+            ].join('\n'),
+            description: 'AMI ID for the EC2 instance (must exist in the selected region)'
+        )
+
+        choice(
+            name: 'InstanceType',
+            choices: [
+                't3.micro',
+                't3.small'
+            ].join('\n'),
+            description: 'EC2 instance type'
+        )
+
+        string(
+            name: 'VpcCidr',
+            defaultValue: '10.0.0.0/16',
+            description: 'CIDR block for the VPC'
+        )
+
+        string(
+            name: 'VpcSubnetCidr',
+            defaultValue: '10.0.1.0/24',
+            description: 'CIDR block for the VPC subnet'
+        )
+
+        string(
+            name: 'S3BucketName',
+            defaultValue: '',
+            description: 'S3 bucket name (must be globally unique)'
+        )
+    }
+
     environment {
         AWS_REGION = 'us-east-1'
         STACK_NAME = 'jenkins-cloudformation-stack'
-        S3_BUCKET_NAME = 'rendani-jenkins-bucket-unique-12345'
     }
 
     stages {
@@ -29,6 +66,7 @@ pipeline {
                                         sh '''
                                         set -eu
                                         test -f deploy.yaml
+                                        test -n "${S3BucketName}"
 
                                         # amazon/aws-cli image uses ENTRYPOINT=aws, so override it to a shell.
                                         docker run --rm -i \
@@ -37,7 +75,11 @@ pipeline {
                                             -e AWS_SECRET_ACCESS_KEY \
                                             -e AWS_REGION \
                                             -e STACK_NAME \
-                                            -e S3_BUCKET_NAME \
+                                            -e EC2AMI \
+                                            -e InstanceType \
+                                            -e VpcCidr \
+                                            -e VpcSubnetCidr \
+                                            -e S3BucketName \
                                             amazon/aws-cli:2.15.0 -c '
                                                 set -eu
                                                 cat > /tmp/deploy.yaml
@@ -45,7 +87,12 @@ pipeline {
                                                 aws cloudformation deploy \
                                                     --stack-name "$STACK_NAME" \
                                                     --template-file /tmp/deploy.yaml \
-                                                    --parameter-overrides S3BucketName="$S3_BUCKET_NAME" \
+                                                    --parameter-overrides \
+                                                        EC2AMI="$EC2AMI" \
+                                                        InstanceType="$InstanceType" \
+                                                        VpcCidr="$VpcCidr" \
+                                                        VpcSubnetCidr="$VpcSubnetCidr" \
+                                                        S3BucketName="$S3BucketName" \
                                                     --capabilities CAPABILITY_IAM \
                                                     --region "$AWS_REGION"
                                             ' < deploy.yaml
