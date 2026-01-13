@@ -26,7 +26,7 @@ pipeline {
                         passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                     )
                 ]) {
-                    bat '''
+                    sh '''
                     aws cloudformation deploy ^
                       --stack-name %STACK_NAME% ^
                       --template-file deploy.yaml ^
