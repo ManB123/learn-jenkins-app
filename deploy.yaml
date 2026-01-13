@@ -1,0 +1,98 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "CloudFormation template with EC2, Vpc and S3 resources"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - VpcCidr
+          - VpcSubnetCidr
+
+      - Label:
+          default: "Storage Configuration"
+        Parameters:
+          - S3BucketName
+
+      - Label:
+          default: "Compute Configuration"
+        Parameters:
+          - EC2AMI
+          - InstanceType
+      
+
+
+Parameters:
+  EC2AMI:
+    Type: String
+    Default: ami-068c0051b15cdb816
+    AllowedValues:
+      - ami-068c0051b15cdb816
+      - ami-069e612f612be3a2b
+    Description: "Choose an AMI ID for the EC2 instance"
+  
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.small
+      - t3.micro
+    Description: "Choose an instance type for the EC2 instance"
+
+  S3BucketName:
+    Type: String
+    Description: "Choose a bucket name for the S3 bucket"
+
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedValues:
+      - 10.0.0.0/16
+      - 10.1.0.0/24
+    Description: "Choose a CIDR block for the VPC"
+  
+  VpcSubnetCidr:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: "input a CIDR block for the VPC subnet"
+
+Resources:
+  RendaniVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: RendaniVPC
+  
+  RendaniSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref VpcSubnetCidr
+      VpcId: !Ref RendaniVpc
+      Tags:
+        - Key: Name
+          Value: RendaniSubnet
+
+  RendaniS3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Ref S3BucketName
+      Tags:
+        - Key: Name
+          Value: RendaniS3Bucket
+
+  RendaniEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref EC2AMI
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref RendaniSubnet
+      Tags:
+        - Key: Name
+          Value: RendaniEC2Instance
