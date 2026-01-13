@@ -36,7 +36,7 @@ pipeline {
                       -e AWS_SECRET_ACCESS_KEY \
                       -e AWS_REGION \
                       -e STACK_NAME \
-                      amazon/aws-cli:2.15.0 sh -c "cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name \\"$STACK_NAME\\" --template-file /tmp/deploy.yaml --capabilities CAPABILITY_IAM --region \\"$AWS_REGION\\""
+                      amazon/aws-cli:2.15.0 sh -c 'cat > /tmp/deploy.yaml && aws --version && aws cloudformation deploy --stack-name "$STACK_NAME" --template-file /tmp/deploy.yaml --capabilities CAPABILITY_IAM --region "$AWS_REGION"'
                     '''
                 }
             }
