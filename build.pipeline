@@ -17,6 +17,20 @@ pipeline {
             }
         }
 
+        stage('Verify AWS CLI') {
+            steps {
+                sh '''
+                set -e
+                if ! command -v aws >/dev/null 2>&1; then
+                  echo "ERROR: aws CLI not found on this Jenkins agent."
+                  echo "Install AWS CLI v2 on the agent (or bake it into the agent image)."
+                  exit 127
+                fi
+                aws --version
+                '''
+            }
+        }
+
         stage('Deploy CloudFormation Stack') {
             steps {
                 // Bind username/password credentials as AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
@@ -26,6 +40,7 @@ pipeline {
                     passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                 )]) {
                     sh """
+                    set -e
                     aws cloudformation deploy \
                       --stack-name ${STACK_NAME} \
                       --template-file deploy.yaml \
