@@ -5,8 +5,8 @@ Resources:
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0fd24edaae77b2388
-      InstanceType: t2.micro
+      ImageId: ami-068c0051b15cdb816
+      InstanceType: t3.micro
       Tags:
         - Key: Name
           Value: Jenkins-CF-Instance
