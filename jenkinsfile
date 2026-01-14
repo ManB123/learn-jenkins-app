@@ -17,12 +17,13 @@ pipeline {
 		}
 
 		stage('Deploy CloudFormation Stack') {
-            agent{
-                docker {
-                    image 'amazon/aws-cli:2.15.0'
-                    reuseNode true
-                }
-            }
+			agent {
+				docker {
+					image 'amazon/aws-cli:2.15.0'
+					reuseNode true
+					args '--entrypoint=""'
+				}
+			}
 			steps {
 				withCredentials([usernamePassword(
                     credentialsId: 'aws_creds',
@@ -31,7 +32,14 @@ pipeline {
                 )]) {
 					script {
 						sh '''
-						aws cloudformation deploy --stack-name %STACK_NAME% --template-file deploy.yaml --capabilities CAPABILITY_IAM --region %AWS_REGION%
+						set -eu
+						test -f deploy.yaml
+						aws --version
+						aws cloudformation deploy \
+						  --stack-name "$STACK_NAME" \
+						  --template-file deploy.yaml \
+						  --capabilities CAPABILITY_IAM \
+						  --region "$AWS_REGION"
 						'''
 					}
 				}
