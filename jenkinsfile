@@ -1,0 +1,92 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            agent{
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la 
+
+                '''
+            }
+        }
+        stage('Test'){
+            agent{
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                sh '''
+                    test -f build/index.html
+                    npm test
+                '''
+            }    
+        }
+    }
+
+    post{
+        always {
+            junit 'test-results/junit.xml'
+        }
+    }
+}
+
+
+
+
+
+pipeline {
+	agent any
+
+	environment {
+		AWS_REGION = 'us-east-1'
+		STACK_NAME = 'jenkins-cloudformation-stack'
+	}
+
+	stages {
+		stage('Checkout') {
+			steps {
+				git(
+					url: "https://github.com/ManB123/learn-jenkins-app.git",
+					branch: "main",
+				)
+			}
+		}
+
+		stage('Deploy CloudFormation Stack') {
+            agent{
+                docker {
+                    image 'amazon/aws-cli:2.15.0'
+                    reuseNode true
+                }
+            }
+			steps {
+				withCredentials([usernamePassword(
+                    credentialsId: 'aws_creds',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+					script {
+						sh '''
+						aws cloudformation deploy --stack-name %STACK_NAME% --template-file deploy.yaml --capabilities CAPABILITY_IAM --region %AWS_REGION%
+						'''
+					}
+				}
+			}
+		}
+	}
+}
